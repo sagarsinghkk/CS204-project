@@ -3,152 +3,402 @@
 #include <sstream>
 #include <vector>
 using namespace std;
-vector<string>hold;
-void splitString(string str){
-              string inputString = str;
-    for (int i = 0; i < inputString.size(); i++) {
-        if(inputString[i]==','){
-          inputString.replace(i, 1," ");
-        }
+vector<string> hold;
+bool error = false;
+int pc = 0;
+unordered_map<string, string> mp = {
+    {"zero", "x0"},
+    {"ra", "x1"},
+    {"sp", "x2"},
+    {"gp", "x3"},
+    {"tp", "x4"},
+    {"t0", "x5"},
+    {"t1", "x6"},
+    {"t2", "x7"},
+    {"s0", "x8"},
+    {"s1", "x9"},
+    {"a0", "x10"},
+    {"a1", "x11"},
+    {"a2", "x12"},
+    {"a3", "x13"},
+    {"a4", "x14"},
+    {"a5", "x15"},
+    {"a6", "x16"},
+    {"a7", "x17"},
+    {"s2", "x18"},
+    {"s3", "x19"},
+    {"s4", "x20"},
+    {"s5", "x21"},
+    {"s6", "x22"},
+    {"s7", "x23"},
+    {"s8", "x24"},
+};
+void splitString(string str)
+{
+  string inputString = str;
+  for (int i = 0; i < inputString.size(); i++)
+  {
+    if (inputString[i] == ',')
+    {
+      inputString.replace(i, 1, " ");
     }
+  }
   std::istringstream iss(inputString);
-  //std::vector<std::string> tokens;
+  // std::vector<std::string> tokens;
   std::string token;
 
-  while (iss >> token) {
-      hold.push_back(token);
+  while (iss >> token)
+  {
+    hold.push_back(token);
   }
-  //return tokens;
+  // return tokens;
 }
-void write(string str){
-  
-    // File name
-    std::string fileName = "output.mc";
+void write(string str)
+{
 
-    // Open the file for writing
-    ofstream outputFile;
-     outputFile.open("output.mc", std::ios::app); 
+  // File name
+  std::string fileName = "output.mc";
 
-    // Check if the file is opened successfully
-    if (!outputFile.is_open()) {
-        std::cerr << "Error opening file: " << fileName << std::endl;
-        cout<<"error"; // Exit with an error code
-    }
+  // Open the file for writing
+  ofstream outputFile;
+  outputFile.open("output.mc", std::ios::app);
 
-    // Data to write to the file
-    std::string dataToWrite = str;
+  // Check if the file is opened successfully
+  if (!outputFile.is_open())
+  {
+    std::cerr << "Error opening file: " << fileName << std::endl;
+    cout << "error"; // Exit with an error code
+  }
 
-    // Write the data to the file
-    outputFile << dataToWrite << std::endl;
+  // Data to write to the file
+  std::string dataToWrite = str;
 
-    // Close the file
-    outputFile.close();
+  // Write the data to the file
+  outputFile << dataToWrite << std::endl;
 
-
-
+  // Close the file
+  outputFile.close();
 }
-string opcode(string a){
-    if(a=="addi" || a=="andi" || a=="ori"){
-            return "0010011";
-    }
-    else if(a=="lb" || a=="ld" || a=="lw" || a=="lh"){
-            return "0000011";
-    }
-    else if(a=="jalr"){
-            return "1100111";
-    }
-    return "error";
-}
-
-string funct3(string a){
-    if(a=="lb" || a=="jalr" || a=="addi"){
-        return "000";
-    }
-    else if(a=="lh"){
-        return "001";
-    }
-    else if(a=="lw"){
-        return "010";
-    }
-    else if(a=="ld"){
-        return "011";
-    }
-    else if(a=="ori"){
-        return "110";
-    }
-    else if(a=="andi"){
-        return "111";
-    }
-    return "error";
-}
-
-string register_num(string a){
-    string reg_string;
-    for(int i=1;i<a.size();i++){
-        reg_string+= a[i];
-    }
-    int reg_no= stoi(reg_string);
-    if(reg_no>=0 && reg_no<32){
-        string ans;
-        for(int i=0;i<5;i++){
-            ans+= ('0'+reg_no%2);
-            reg_no/=2;
-        }
-        reverse(ans.begin(),ans.end());
-        return ans;
-    }
-    return "error";
+string opcode(string a)
+{
+  if (a == "R")
+  {
+    return "0110011";
+  }
+  else if (a == "S")
+  {
+    return "0100011";
+  }
+  else if (a == "addi" || a == "andi" || a == "ori")
+  {
+    return "0010011";
+  }
+  else if (a == "lb" || a == "ld" || a == "lw" || a == "lh")
+  {
+    return "0000011";
+  }
+  else if (a == "jalr")
+  {
+    return "1100111";
+  }
+  else if (a == "auipc")
+  {
+    return "0010111";
+  }
+  else if (a == "lui")
+  {
+    return "0110111";
+  }
+  else if (a == "beq" || a == "bne" || a == "bge" || a == "blt")
+  {
+    return "1100011";
+  }
+  else if (a == "jal")
+  {
+    return "1101111";
+  }
+  error = true;
+  return "";
 }
 
-string immediate(string a){
-    int imm= stoi(a);
-    if(imm<0){
-        imm = 4096 +imm;
-    }
-    if(imm>=0 && imm<4096){
-        string ans;
-        for(int i=0;i<12;i++){
-            ans+=('0' + imm%2);
-            imm/=2;
-        }
-        reverse(ans.begin(),ans.end());
-        return ans;
-    }
-    return "error";
+string funct3(string a)
+{
+  if (a == "lb" || a == "jalr" || a == "addi")
+  {
+    return "000";
+  }
+  else if (a == "lh")
+  {
+    return "001";
+  }
+  else if (a == "lw")
+  {
+    return "010";
+  }
+  else if (a == "ld")
+  {
+    return "011";
+  }
+  else if (a == "ori")
+  {
+    return "110";
+  }
+  else if (a == "andi")
+  {
+    return "111";
+  }
+  return "error";
 }
 
-string I_format(string operation,string rd,string rs1, string imm){
-    string ans="0x";
-    ans+=immediate(imm);
-    ans+=register_num(rs1);
-    ans+=funct3(operation);
-    ans+=register_num(rd);
-    ans+=opcode(operation);
+string register_num(string a)
+{
+  string reg_string;
+  for (int i = 1; i < a.size(); i++)
+  {
+    reg_string += a[i];
+  }
+  int reg_no = stoi(reg_string);
+  if (reg_no >= 0 && reg_no < 32)
+  {
+    string ans;
+    for (int i = 0; i < 5; i++)
+    {
+      ans += ('0' + reg_no % 2);
+      reg_no /= 2;
+    }
+    reverse(ans.begin(), ans.end());
     return ans;
+  }
+  return "error";
 }
-int main() {
-   std::string fileName = "example.asm";
 
-   // Open the file
-   std::ifstream inputFile(fileName);
+string immediate(string a)
+{
+  int imm = stoi(a);
+  if (imm < 0)
+  {
+    imm = 4096 + imm;
+  }
+  if (imm >= 0 && imm < 4096)
+  {
+    string ans;
+    for (int i = 0; i < 12; i++)
+    {
+      ans += ('0' + imm % 2);
+      imm /= 2;
+    }
+    reverse(ans.begin(), ans.end());
+    return ans;
+  }
+  return "error";
+}
+string immediate_U(string a)
+{
+  int imm = stoi(a);
+  if (imm >= 0 && imm < 1048576)
+  {
+    string ans;
+    for (int i = 0; i < 20; i++)
+    {
+      ans += ('0' + imm % 2);
+      imm /= 2;
+    }
+    reverse(ans.begin(), ans.end());
+    return ans;
+  }
+  error = true;
+  return "";
+}
 
-   // Check if the file is opened successfully
-   if (!inputFile.is_open()) {
-       std::cerr << "Error opening file: " << fileName << std::endl;
-       return 1; // Exit with an error code
-   }
+string I_format(string hold[4 * i], string rd, string rs1, string imm)
+{
+  string ans = "0x";
+  ans += immediate(imm);
+  ans += register_num(rs1);
+  ans += funct3(hold[4 * i]);
+  ans += register_num(rd);
+  ans += opcode(hold[4 * i]);
+  return ans;
+}
+string convert_to_hex(string a)
+{
+  bitset<32> b(a);
+  unsigned long int x = b.to_ulong();
+  stringstream ss;
+  ss << hex << x;
+  string hexString = ss.str();
+  return hexString;
+}
+string func3(string a)
+{
+  if (a == "add" || a == "sub" || a == "mul" || a == "sb")
+  {
+    return "000";
+  }
+  else if (a == "xor" || a == "div")
+  {
+    return "100";
+  }
+  else if (a == "srl")
+  {
+    return "101";
+  }
+  else if (a == "sra")
+  {
+    return "101";
+  }
+  else if (a == "sll" || a == "sh")
+  {
+    return "001";
+  }
+  else if (a == "slt" || a == "sw")
+  {
+    return "010";
+  }
+  else if (a == "or" || a == "rem")
+  {
+    return "110";
+  }
+  else if (a == "and")
+  {
+    return "111";
+  }
+  else if (a == "sd")
+  {
+    return "011";
+  }
+  else if (a == "lb" || a == "jalr" || a == "addi")
+  {
+    return "000";
+  }
+  else if (a == "lh")
+  {
+    return "001";
+  }
+  else if (a == "lw")
+  {
+    return "010";
+  }
+  else if (a == "ld")
+  {
+    return "011";
+  }
+  else if (a == "ori")
+  {
+    return "110";
+  }
+  else if (a == "andi")
+  {
+    return "111";
+  }
+  else if (a == "beq")
+  {
+    return "000";
+  }
+  else if (a == "bne")
+  {
+    return "001";
+  }
+  else if (a == "blt")
+  {
+    return "100";
+  }
+  else if (a == "bge")
+  {
+    return "101";
+  }
+  error = true;
+  return "";
+}
+string func7(string a)
+{
+  if (a == "add" || a == "sll" || a == "slt" || a == "xor" || a == "srl" || a == "or" || a == "and")
+  {
+    return "0000000";
+  }
+  else if (a == "mul" || a == "div" || a == "rem")
+  {
+    return "0000001";
+  }
+  else if (a == "sub" || a == "sra")
+  {
+    return "0100000";
+  }
+  error = true;
+  return "";
+}
+string S_format(string operation, string rs2, string rs1, string imm)
+{
 
-   // Read and print the contents of the file
-  int i=0;
-   std::string line;
-   while (std::getline(inputFile, line)) {
-       splitString(line);
-       
-       string I1=I_format(hold[4*i],hold[4*i+1],hold[4*i+2],hold[4*i+3]);
-   write(I1);
- i++;
-       
-   }
-   inputFile.close();
-    return 0;
+  string ans = "";
+  imm = immediate(imm);
+  string imm1 = imm.substr(5), imm2 = imm.substr(0, 5);
+  reverse(imm1.begin(), imm1.end());
+  reverse(imm2.begin(), imm2.end());
+  ans += imm1;
+  ans += register_num(rs2);
+  ans += register_num(rs1);
+  ans += func3(operation);
+  ans += imm2;
+  ans += opcode("S");
+  if (error)
+  {
+    return "";
+  }
+  ans = convert_to_hex(ans);
+  ans = "0x" + ans;
+  return ans;
+}
+int main()
+{
+  std::string fileName = "example.asm";
+
+  // Open the file
+  std::ifstream inputFile(fileName);
+
+  // Check if the file is opened successfully
+  if (!inputFile.is_open())
+  {
+    std::cerr << "Error opening file: " << fileName << std::endl;
+    return 1; // Exit with an error code
+  }
+
+  // Read and print the contents of the file
+  int i = 0;
+  std::string line;
+  string ans;
+  while (std::getline(inputFile, line))
+  {
+    splitString(line);
+
+    if (hold[4 * i] == "addi" || hold[4 * i] == "andi" || hold[4 * i] == "ori" || hold[4 * i] == "lb" || hold[4 * i] == "ld" || hold[4 * i] == "lh" || hold[4 * i] == "lw" || hold[4 * i] == "jalr")
+    {
+      ans = I_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+    }
+    else if (hold[4 * i] == "sb" || hold[4 * i] == "sw" || hold[4 * i] == "sd" || hold[4 * i] == "sh")
+    {
+
+      ans = S_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+    }
+    else if (hold[4 * i] == "bne" || hold[4 * i] == "beq" || hold[4 * i] == "blt" || hold[4 * i] == "bge")
+    {
+
+      ans = SB_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+    }
+    else if (hold[4 * i] == "auipc" || hold[4 * i] == "lui")
+    {
+
+      ans = U_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+    }
+    else if (hold[4 * i] == "jal")
+    {
+
+      ans = UJ_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+    }
+
+    write(ans);
+    i++;
+  }
+  inputFile.close();
+  return 0;
 }
