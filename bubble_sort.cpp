@@ -184,16 +184,7 @@ string immediate_U(string a)
   return "";
 }
 
-string I_format(string hold[4 * i], string rd, string rs1, string imm)
-{
-  string ans = "0x";
-  ans += immediate(imm);
-  ans += register_num(rs1);
-  ans += funct3(hold[4 * i]);
-  ans += register_num(rd);
-  ans += opcode(hold[4 * i]);
-  return ans;
-}
+
 string convert_to_hex(string a)
 {
   bitset<32> b(a);
@@ -301,6 +292,32 @@ string func7(string a)
   error = true;
   return "";
 }
+string R_format(string operation,string rd,string rs1,string rs2){
+    
+    string ans="";
+    ans+=func7(operation);
+    ans+=register_num(rs2);
+    ans+=register_num(rs1);
+    ans+=func3(operation);
+    ans+=register_num(rd);
+    ans+=opcode("R");
+    if(error){
+        return "";
+    }
+    ans=convert_to_hex(ans);
+    ans="0x"+ans;
+    return ans;
+}
+string I_format(string hold[4 * i], string rd, string rs1, string imm)
+{
+  string ans = "0x";
+  ans += immediate(imm);
+  ans += register_num(rs1);
+  ans += funct3(hold[4 * i]);
+  ans += register_num(rd);
+  ans += opcode(hold[4 * i]);
+  return ans;
+}
 string S_format(string operation, string rs2, string rs1, string imm)
 {
 
@@ -322,6 +339,53 @@ string S_format(string operation, string rs2, string rs1, string imm)
   ans = convert_to_hex(ans);
   ans = "0x" + ans;
   return ans;
+}
+string SB_format(string operation,string rs1, string rs2, string imm){
+    string ans="";
+    imm=immediate(imm);
+    ans+=imm[0];            //12
+    ans+=imm.substr(2,6);   //10:5
+    ans+=register_num(rs2);
+    ans+=register_num(rs1);
+    ans+=func3(operation);
+    ans+=imm.substr(8,4);   //4:1
+    ans+=imm[1];            //11
+    ans+=opcode(operation);
+    if(error){
+        return "";
+    }
+    ans=convert_to_hex(ans);
+    ans="0x"+ans;
+    return ans;
+}
+string U_format(string operation,string rd,string imm){
+    string ans="";
+    ans+=immediate(imm);
+    ans+=register_num(rd);
+    ans+=opcode(operation);
+    if(error){
+        return "";
+    }
+    ans=convert_to_hex(ans);
+    ans="0x"+ans;
+    return ans;
+}
+
+string UJ_format(string operation,string rd,string imm){
+    string ans="";
+    imm=immediate(imm);
+    ans+=imm[0];            //20
+    ans+=imm.substr(10,10); //10:5
+    ans+=imm[9];            //11
+    ans+=imm.substr(1,8);   //19:12
+    ans+=register_num(rd);
+    ans+=opcode(operation);
+    if(error){
+        return "";
+    }
+    ans=convert_to_hex(ans);
+    ans="0x"+ans;
+    return ans;
 }
 int main()
 {
