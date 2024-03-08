@@ -95,34 +95,7 @@ string opcode(string a)
   return "";
 }
 
-string funct3(string a)
-{
-  if (a == "lb" || a == "jalr" || a == "addi")
-  {
-    return "000";
-  }
-  else if (a == "lh")
-  {
-    return "001";
-  }
-  else if (a == "lw")
-  {
-    return "010";
-  }
-  else if (a == "ld")
-  {
-    return "011";
-  }
-  else if (a == "ori")
-  {
-    return "110";
-  }
-  else if (a == "andi")
-  {
-    return "111";
-  }
-  return "error";
-}
+
 
 string register_num(string a)
 {
