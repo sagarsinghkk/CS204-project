@@ -37,7 +37,7 @@ string getfirst( string str )
   {
     if( str[i] == ' ' )
       break;
-
+ 
     ans = ans + str[i];
   }
   return ans;
@@ -112,7 +112,7 @@ void splitString(string str)
 
 void write(string str)
 {
-
+  
   int num = address[pc];
 
   string ans = "";
@@ -124,7 +124,7 @@ void write(string str)
   reverse(ans.begin(), ans.end());
   ans = convert_to_hex(ans);
   str = "0x" +  ans + " " + str;
-
+  
   // File name
   string fileName = "output.mc";
   // Open the file for writing
@@ -146,6 +146,7 @@ void write(string str)
 
   // Close the file
   outputFile.close();
+  //cout<<""<<endl;
 }
 
 void write_data(string str,int num)
@@ -176,7 +177,7 @@ void write_data_byte(string str,int num)
 {
   //cout<<str<<" "<<num<<endl;
   int n=(int)str[1];
-
+  
   string ans = "";
     for (int i = 0; i < 32; i++)
     {
@@ -201,7 +202,7 @@ void write_data_string(string str,int num)
 {
   //cout<<str<<" "<<num<<endl;
   int n=(int)str[0];
-
+  
   string ans = "";
     for (int i = 0; i < 32; i++)
     {
@@ -452,7 +453,7 @@ string func7(string a)
   return "";
 }
 string R_format(string operation,string rd,string rs1,string rs2){
-
+    
     string ans="";
     ans+=func7(operation);
     ans+=register_num(rs2);
@@ -460,13 +461,11 @@ string R_format(string operation,string rd,string rs1,string rs2){
     ans+=func3(operation);
     ans+=register_num(rd);
     ans+=opcode("R");
-    //cout<<ans<<endl;
-    /*if(error){
+    if(error){
         return "";
-    }*/
+    }
     ans=convert_to_hex(ans);
     ans="0x"+ans;
-    return ans;
 }
 string I_format(string h, string rd, string rs1, string imm)
 {
@@ -559,7 +558,7 @@ int main()
 
   // Check if the file is opened successfully
 
-
+  
   if (inFile.is_open())
   {
     cout << "file opened successfully: " << endl;
@@ -643,9 +642,9 @@ int main()
 
           }
         }
-
+        
     }
-
+    
     else if(flag==0)
     {   
         //cout<<""<<endl;
@@ -661,6 +660,7 @@ int main()
     }
   }
   inFile.close();
+ 
 
 
 string fileName2 = "example.asm";
@@ -677,15 +677,15 @@ string fileName2 = "example.asm";
   }
   // Read and print the contents of the file
   int i = 0;
-
+  
   string line;
   string ans;
-
   while(getline(inputFile, line))
   { 
     //cout<<line<<endl;
     //cout<<flag<<endl;
     string s = getfirst(line);
+    //cout<<line<<endl;
     if(s==".data")
     {
         flag=-1;
@@ -695,114 +695,49 @@ string fileName2 = "example.asm";
     else if(flag==0)    
     {   
         //cout<<""<<endl;
-        if(s[s.size()-1]!=':')
-          splitString(line);
-        //cout<<line<<endl;
-        if(line!="" && s[s.size()-1]!=':')
+        splitString(line);
+
+        if (hold[4 * i] == "addi" || hold[4 * i] == "andi" || hold[4 * i] == "ori" || hold[4 * i] == "lb" || hold[4 * i] == "ld" || hold[4 * i] == "lh" || hold[4 * i] == "lw" || hold[4 * i] == "jalr")
         {   
-            //cout<<line<<endl;
-            //cout<<hold[i]<<endl;
-            if (hold[ i] == "addi" || hold[ i] == "andi" || hold[ i] == "ori" )
-            {   
-                //cout<<""<<endl;
-                //cout<<line<<endl;
-                ans = I_format(hold[ i], hold[ i + 1], hold[ i + 2], hold[ i + 3]);
-                write(ans);
-                pc++;
-                i=i+4;
+            //cout<<""<<endl;
+            ans = I_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+        
+        }
+        
+        else if (hold[4 * i] == "sb" || hold[4 * i] == "sw" || hold[4 * i] == "sd" || hold[4 * i] == "sh")
+        {
 
-            }
-             else if(hold[i]=="lb" ||  hold[i]=="ld" ||   hold[i]=="lh" ||   hold[i]=="lw" || hold[ i] == "jalr"){
+            ans = S_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+        
+        }
+        else if (hold[4 * i] == "bne" || hold[4 * i] == "beq" || hold[4 * i] == "blt" || hold[4 * i] == "bge")
+        {
 
-            // rs1 = lineVec[2];
-            int j=0,n1=hold[i+2].size();
-            string imm="";
-            string rs1="";
-            string rs2="";
-            while(j<n1 && hold[i+2][j]>='0' && hold[i+2][j]<='9'){
-               imm+=hold[i+2][j];
-                j++;
-            }
-            j++;
-            while(j<n1 && hold[2][j]!=')'){
-                rs1+=hold[i+2][j];
-                j++;
-            }
-            rs2 = hold[i+3];
-            ans = I_format(hold[i], hold[i+1], rs1, imm);
-            write(ans);
-                pc++;
-                i+=4;
+            ans = SB_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2], hold[4 * i + 3]);
+        
+        }
+        else if (hold[4 * i] == "auipc" || hold[4 * i] == "lui")
+        {
+
+            ans = U_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2]);
+        
+        }
+        else if (hold[4 * i] == "jal")
+        {
+
+            ans = UJ_format(hold[4 * i], hold[4 * i + 1], hold[4 * i + 2]);
+        
         }
 
-            else if (hold[ i] == "and" || hold[ i] == "add" || hold[i] == "or" || hold[i] == "sll" || hold[i] == "slt"  || hold[i] == "sra"|| hold[i] == "srl" || hold[i] == "sub" || hold[i] == "xor" || hold[i] == "mul" || hold[i] == "div" || hold[i] == "rem")
-            {   
-                //cout<<"hi"<<endl;
-                ans = R_format(hold[i], hold[i + 1], hold[i + 2], hold[i + 3]);
-                //cout<<"kk"<<endl;
-                //cout<<ans<<endl;
-                write(ans);
-                pc++;
-                i+=4;
-
-            }
-
-            else if (hold[] == "sb" || hold[i] == "sw" || hold[i] == "sd" || hold[i] == "sh")
-            {       // rs2 = lineVec[1];
-            // rs1 = lineVec[2];
-            string imm="";
-            string rs1="";
-            int j=0,n1=hold[i+2].size();
-            while(j<n1 && hold[i+2][j]>='0' && hold[i+2][j]<='9'){
-                imm+=hold[i+2][j];
-                j++;
-            }
-            j++;
-            while(j<n1 && hold[i+2][j]!=')'){
-                rs1+=hold[i+2][j];
-                j++;
-            }
-
-                ans = S_format(hold[i], hold[i + 1], rs1, imm);
-                write(ans);
-                pc++;
-                i+=4;
-
-            }
-            else if (hold[i] == "bne" || hold[i] == "beq" || hold[i] == "blt" || hold[i] == "bge")
-            {
-                //cout<<line<<endl;
-                ans = SB_format(hold[i], hold[i + 1], hold[i + 2], hold[i + 3]);
-                write(ans);
-                pc++;
-                i+=4;
-
-            }
-            else if (hold[i] == "auipc" || hold[i] == "lui")
-            {
-
-                ans = U_format(hold[i], hold[i + 1], hold[i + 2]);
-                write(ans);
-                pc++;
-                i+=3;
-
-            }
-            else if (hold[i] == "jal")
-            {
-
-                ans = UJ_format(hold[i], hold[i + 1], hold[i + 2]);
-                write(ans);
-                pc++;
-                i+=3;
-
-            }
-        }
-
-        //cout<<"end of else if"<<endl;
+        write(ans);
+        
+        pc++;
+        i++;
+        cout<<"written"<<endl;
     }    
-
+    
   }
-  //cout<<"hh"<<endl;
+  cout<<""<<endl;
   string fileName3 = "output.mc";
   // Open the file for writing
   ofstream outputFile;
